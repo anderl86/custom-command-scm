@@ -47,8 +47,8 @@ public class CustomScriptSCM extends SCM {
     @Override
     protected PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> ap, Launcher lnchr, FilePath fp, TaskListener tl, SCMRevisionState scmrs) throws IOException, InterruptedException {
         String cmd = DESCRIPTOR.getPollCommand();
-        if(this.commandAdditions != null) 
-            cmd += " " + this.commandAdditions;
+        if(this.getCommandAdditions() != null) 
+            cmd += " " + this.getCommandAdditions();
         int retcode = lnchr.launch().cmdAsSingleString(cmd).stdout(tl).pwd(fp).start().joinWithTimeout(DESCRIPTOR.getPollCommandTimeout(), TimeUnit.SECONDS, tl);
         return retcode == 1000 ? PollingResult.BUILD_NOW : PollingResult.NO_CHANGES;
     }
@@ -56,8 +56,8 @@ public class CustomScriptSCM extends SCM {
     @Override
     public boolean checkout(AbstractBuild<?, ?> ab, Launcher lnchr, FilePath fp, BuildListener bl, File file) throws IOException, InterruptedException {
         String cmd = DESCRIPTOR.getCheckoutCommand();
-        if(this.commandAdditions != null) 
-            cmd += " " + this.commandAdditions;
+        if(this.getCommandAdditions() != null) 
+            cmd += " " + this.getCommandAdditions();
         
         FileOutputStream changelogfile = new FileOutputStream(file);
         
@@ -69,6 +69,16 @@ public class CustomScriptSCM extends SCM {
     public ChangeLogParser createChangeLogParser() {
         return new CustomScriptSCMChangeLogSet.Parser();
     }
+
+    public String getCommandAdditions() {
+        return commandAdditions;
+    }
+
+    public void setCommandAdditions(String commandAdditions) {
+        this.commandAdditions = commandAdditions;
+    }
+    
+    
     
     public static class DescriptorImpl extends SCMDescriptor<CustomScriptSCM> {
         private String pollCommand;
