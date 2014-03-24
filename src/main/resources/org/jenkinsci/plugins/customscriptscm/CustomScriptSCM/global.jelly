@@ -12,6 +12,9 @@
     so it should be straightforward to find them.
   -->
   <f:section title="${%CustomScriptSCM}">
+    <f:entry title="${%ScmName}" field="scmName" description="">
+      <f:textbox />
+    </f:entry>
     <f:entry title="${%PollChangesCommandLine}" field="pollCommand" description="">
       <f:textbox />
     </f:entry>

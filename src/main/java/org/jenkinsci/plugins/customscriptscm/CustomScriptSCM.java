@@ -6,6 +6,7 @@
 
 package org.jenkinsci.plugins.customscriptscm;
 
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -19,6 +20,8 @@ import hudson.scm.PollingResult;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -49,8 +52,23 @@ public class CustomScriptSCM extends SCM {
         String cmd = DESCRIPTOR.getPollCommand();
         if(this.getCommandAdditions() != null) 
             cmd += " " + this.getCommandAdditions();
-        int retcode = lnchr.launch().cmdAsSingleString(cmd).stdout(tl).pwd(fp).start().joinWithTimeout(DESCRIPTOR.getPollCommandTimeout(), TimeUnit.SECONDS, tl);
-        return retcode == 1000 ? PollingResult.BUILD_NOW : PollingResult.NO_CHANGES;
+        
+        String state = "";
+        if(scmrs instanceof CustomScriptSCMRevisionState) {
+            state = ((CustomScriptSCMRevisionState)scmrs).getState();
+        }
+        
+        ByteArrayInputStream in = new ByteArrayInputStream(state.getBytes());
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        int retcode = lnchr.launch().cmdAsSingleString(cmd).pwd(fp).stdin(in).stdout(out).stderr(tl.getLogger()).start().joinWithTimeout(DESCRIPTOR.getPollCommandTimeout(), TimeUnit.SECONDS, tl);
+         
+        CustomScriptSCMRevisionState newstate = new CustomScriptSCMRevisionState(out.toString());
+        if(retcode == 1000)
+            return new PollingResult(scmrs, newstate, PollingResult.Change.SIGNIFICANT);
+        else if(retcode == 1001)
+            return new PollingResult(scmrs, newstate, PollingResult.Change.INCOMPARABLE);
+        else
+            return new PollingResult(scmrs, newstate, PollingResult.Change.NONE);
     }
 
     @Override
@@ -62,7 +80,11 @@ public class CustomScriptSCM extends SCM {
         FileOutputStream changelogfile = new FileOutputStream(file);
         
         int retcode = lnchr.launch().cmdAsSingleString(cmd).stdout(changelogfile).stderr(lnchr.getListener().getLogger()).pwd(fp).envs(ab.getBuildVariables()).start().join();
-        return retcode == 0;
+        if(retcode != 0) {
+            throw new AbortException("Error checking out source code");
+        }
+        
+        return true;
     }
 
     @Override
@@ -79,8 +101,24 @@ public class CustomScriptSCM extends SCM {
     }
     
     
+    public static class CustomScriptSCMRevisionState extends SCMRevisionState {
+        private String state;
+
+        public CustomScriptSCMRevisionState(String state) {
+            this.state = state;
+        }        
+        
+        public String getState() {
+            return state;
+        }
+
+        public void setState(String state) {
+            this.state = state;
+        }
+    }
     
     public static class DescriptorImpl extends SCMDescriptor<CustomScriptSCM> {
+        private String scmName = Messages.CustomScriptSCM_DisplayName();
         private String pollCommand;
         private int pollCommandTimeout = 60;
         private String checkoutCommand;
@@ -92,11 +130,12 @@ public class CustomScriptSCM extends SCM {
         
         @Override
         public String getDisplayName() {
-            return Messages.CustomScriptSCM_DisplayName();
+            return this.scmName;
         }
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+            this.setScmName(json.getString("scmName"));
             this.setPollCommand(json.getString("pollCommand"));
             this.setPollCommandTimeout(json.getInt("pollCommandTimeout"));
             this.setCheckoutCommand(json.getString("checkoutCommand"));
@@ -104,46 +143,36 @@ public class CustomScriptSCM extends SCM {
             return true;
         }
 
-        /**
-         * @return the pollCommand
-         */
         public String getPollCommand() {
             return pollCommand;
         }
 
-        /**
-         * @param pollCommand the pollCommand to set
-         */
         public void setPollCommand(String pollCommand) {
             this.pollCommand = pollCommand;
         }
 
-        /**
-         * @return the pollCommandTimeout
-         */
         public int getPollCommandTimeout() {
             return pollCommandTimeout;
         }
 
-        /**
-         * @param pollCommandTimeout the pollCommandTimeout to set
-         */
         public void setPollCommandTimeout(int pollCommandTimeout) {
             this.pollCommandTimeout = pollCommandTimeout;
         }
 
-        /**
-         * @return the checkoutCommand
-         */
         public String getCheckoutCommand() {
             return checkoutCommand;
         }
-
-        /**
-         * @param checkoutCommand the checkoutCommand to set
-         */
+        
         public void setCheckoutCommand(String checkoutCommand) {
             this.checkoutCommand = checkoutCommand;
+        }
+
+        public String getScmName() {
+            return scmName;
+        }
+
+        public void setScmName(String scmName) {
+            this.scmName = scmName;
         }
     }
     
