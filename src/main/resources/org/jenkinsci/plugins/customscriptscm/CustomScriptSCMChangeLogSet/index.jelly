@@ -1,34 +1,34 @@
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <h2>${%Summary}</h2>
-  <table class="pane" style="border:none">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+  <j:choose>
+    <j:when test="${it.emptySet}">
+      ${%NoChanges}
+    </j:when>
+    <j:otherwise>
+    <table class="pane" style="border:none">
     <j:forEach var="cs" items="${it.items}" varStatus="loop">
       <tr class="pane">
-        <td colspan="2" class="changeset">
+        <td class="changeset" colspan="2">
           <a name="detail${loop.index}"></a>
           <div class="changeset-message">
-            <b>
-              ${%VersionBy} <a href="${rootURL}/${cs.author.url}/">${cs.author}</a>:
-            </b>
-            ${cs.comment}<br/>
+            <b>${loop.index + 1}. <a href="${rootURL}/${cs.author.url}/">${cs.author}</a> on ${cs.date}</b><br/>
+            ${cs.msgAnnotated}
           </div>
         </td>
       </tr>
-      <j:choose>
-        <j:when test="${empty cs.affectedPaths}">
-          <tr>
-            <td colspan="2">${%NoChanges}</td>
-          </tr>
-        </j:when>
-        <j:otherwise>
-          <j:forEach var="item" items="${cs.affectedFiles}">
-            <tr>
-              <td width="16"><t:editTypeIcon type="${item.editType}" /></td>
-              <td>${item.filename}</td>
-            </tr>
-          </j:forEach>
-        </j:otherwise>
-      </j:choose>      
-    </j:forEach>
-  </table>
-</j:jelly>
 
+      <j:forEach var="element" items="${cs.elements}">
+        <tr>
+        	<td align="right">
+        		<j:if test="${element.editType!=null}">
+        			<t:editTypeIcon type="${element.editType}" />
+        		</j:if>
+        	</td>
+        	<td>${item.filename}</td>
+        </tr>
+      </j:forEach>
+    </j:forEach>
+    </table>
+    
+	</j:otherwise>
+  </j:choose>
+</j:jelly>

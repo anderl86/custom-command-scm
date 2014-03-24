@@ -1,17 +1,21 @@
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
   <j:choose>
     <j:when test="${it.emptySet}">
       ${%NoChanges}
     </j:when>
     <j:otherwise>
-      ${%Changes}
-      <ol>
+      <b>${%Changes}</b>
+      <br/>
+      <table>
         <j:forEach var="cs" items="${it.items}" varStatus="loop">
-          <li>
-            ${cs.msgAnnotated} (<a href="changes#detail${loop.index}">detail</a>)
-          </li>
+          <tr>
+            <td>${loop.index + 1}.</td>
+            <td><a href="${rootURL}/${cs.author.url}/">${cs.author}</a></td>
+            <td><i>(<a href="changes#detail${loop.index}">detail</a>)</i></td>
+            <td> ${cs.msgAnnotated}</td>
+          </tr>
         </j:forEach>
-      </ol>
+      </table>
     </j:otherwise>
   </j:choose>
 </j:jelly>
