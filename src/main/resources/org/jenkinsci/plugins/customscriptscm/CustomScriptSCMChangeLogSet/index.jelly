@@ -16,7 +16,7 @@
         </td>
       </tr>
 
-      <j:forEach var="element" items="${cs.elements}">
+      <j:forEach var="item" items="${cs.affectedFiles}">
         <tr>
         	<td align="right">
         		<j:if test="${element.editType!=null}">
