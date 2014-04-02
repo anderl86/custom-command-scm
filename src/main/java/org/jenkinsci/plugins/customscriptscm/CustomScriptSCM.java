@@ -7,6 +7,7 @@
 package org.jenkinsci.plugins.customscriptscm;
 
 import hudson.AbortException;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -14,6 +15,7 @@ import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
+import hudson.model.Computer;
 import hudson.model.TaskListener;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.PollingResult;
@@ -25,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -60,7 +63,15 @@ public class CustomScriptSCM extends SCM {
         
         ByteArrayInputStream in = new ByteArrayInputStream(state.getBytes());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        int retcode = lnchr.launch().cmdAsSingleString(cmd).pwd(fp).stdin(in).stdout(out).stderr(tl.getLogger()).start().joinWithTimeout(DESCRIPTOR.getPollCommandTimeout(), TimeUnit.SECONDS, tl);
+        
+        int retcode =   lnchr.launch()
+                        .cmdAsSingleString(cmd)
+                        .envs(ap.getEnvironment(Computer.currentComputer().getNode(), tl))
+                        .pwd(fp)
+                        .stdin(in)
+                        .stdout(out)
+                        .stderr(tl.getLogger())
+                        .start().joinWithTimeout(DESCRIPTOR.getPollCommandTimeout(), TimeUnit.SECONDS, tl);
          
         CustomScriptSCMRevisionState newstate = new CustomScriptSCMRevisionState(out.toString());
         if(retcode == 1000)
@@ -77,9 +88,19 @@ public class CustomScriptSCM extends SCM {
         if(this.getCommandAdditions() != null) 
             cmd += " " + this.getCommandAdditions();
         
+         EnvVars envVars = ab.getEnvironment(bl);
+         envVars.putAll(ab.getBuildVariables());
+        
         FileOutputStream changelogfile = new FileOutputStream(file);
         
-        int retcode = lnchr.launch().cmdAsSingleString(cmd).stdout(changelogfile).stderr(lnchr.getListener().getLogger()).pwd(fp).envs(ab.getBuildVariables()).start().join();
+        int retcode =   lnchr.launch()
+                        .cmdAsSingleString(cmd)
+                        .envs(envVars)
+                        .pwd(fp)
+                        .stdout(changelogfile)
+                        .stderr(lnchr.getListener().getLogger())
+                        .start().join();
+        
         if(retcode != 0) {
             throw new AbortException("Error checking out source code");
         }
