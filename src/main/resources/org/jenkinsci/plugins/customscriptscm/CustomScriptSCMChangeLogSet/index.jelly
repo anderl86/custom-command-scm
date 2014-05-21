@@ -19,8 +19,8 @@
       <j:forEach var="item" items="${cs.affectedFiles}">
         <tr>
         	<td align="right">
-        		<j:if test="${element.editType!=null}">
-        			<t:editTypeIcon type="${element.editType}" />
+        		<j:if test="${item.editType!=null}">
+        			<t:editTypeIcon type="${item.editType}" />
         		</j:if>
         	</td>
         	<td>${item.filename}</td>

@@ -8,7 +8,7 @@
 
   <groupId>org.jenkinsci.plugins</groupId>
   <artifactId>custom-script-scm</artifactId>
-  <version>0.2.2-SNAPSHOT</version>
+  <version>0.2.3-SNAPSHOT</version>
   <name>Custom Script SCM</name>
   <packaging>hpi</packaging>
   <description>Adds a scm integration that is based on calling external scripts.</description>
