@@ -74,12 +74,16 @@ public class CustomScriptSCM extends SCM {
                         .start().joinWithTimeout(DESCRIPTOR.getPollCommandTimeout(), TimeUnit.SECONDS, tl);
          
         CustomScriptSCMRevisionState newstate = new CustomScriptSCMRevisionState(out.toString());
-        if(retcode == 1000)
+        if(retcode == 0)
+            return new PollingResult(scmrs, newstate, PollingResult.Change.NONE);
+        else if(retcode == 100)
+            return new PollingResult(scmrs, newstate, PollingResult.Change.INSIGNIFICANT);
+        else if(retcode == 101)
             return new PollingResult(scmrs, newstate, PollingResult.Change.SIGNIFICANT);
-        else if(retcode == 1001)
+        else if(retcode == 102)
             return new PollingResult(scmrs, newstate, PollingResult.Change.INCOMPARABLE);
         else
-            return new PollingResult(scmrs, newstate, PollingResult.Change.NONE);
+            throw new AbortException("Poll changes command returned undefined retcode " + retcode);
     }
 
     @Override
