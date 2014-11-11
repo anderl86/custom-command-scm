@@ -10,8 +10,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import org.apache.commons.digester.Digester;
 import org.xml.sax.SAXException;
+
+
 
 class CustomScriptSCMChangeLogSet extends ChangeLogSet<CustomScriptSCMChangeLogEntry> {
    private final List<CustomScriptSCMChangeLogEntry> changeLogEntries;
@@ -34,6 +37,8 @@ class CustomScriptSCMChangeLogSet extends ChangeLogSet<CustomScriptSCMChangeLogE
     }
     
     public static class Parser extends ChangeLogParser {
+        private static final Logger LOG = Logger.getLogger(Parser.class.getName());
+                
         @Override
         public ChangeLogSet<? extends Entry> parse(AbstractBuild ab, File file) throws IOException, SAXException {
             List<CustomScriptSCMChangeLogEntry> changeLogEntries = new ArrayList<CustomScriptSCMChangeLogEntry>();
@@ -55,7 +60,9 @@ class CustomScriptSCMChangeLogSet extends ChangeLogSet<CustomScriptSCMChangeLogE
             digester.addSetNext("*/entry/items/item", "addFile");
 
             try {
+                if(file.exists() && file.length() > 0) {
                     digester.parse(file);
+                }
             }
             catch(IOException e) {
                     throw new IOException2("Failed to parse " + file, e);

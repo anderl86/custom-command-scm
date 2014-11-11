@@ -3,12 +3,12 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.509.3</version><!-- which version of Jenkins is this plugin built against? -->
+    <version>1.580.1</version><!-- which version of Jenkins is this plugin built against? -->
   </parent>
 
   <groupId>org.jenkinsci.plugins</groupId>
   <artifactId>custom-script-scm</artifactId>
-  <version>0.2.3-SNAPSHOT</version>
+  <version>0.2.4-SNAPSHOT</version>
   <name>Custom Script SCM</name>
   <packaging>hpi</packaging>
   <description>Adds a scm integration that is based on calling external scripts.</description>
