@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.customscriptscm;
+package org.jenkinsci.plugins.customcommandscm;
 
 import hudson.model.AbstractBuild;
 import hudson.scm.ChangeLogParser;
@@ -16,13 +16,13 @@ import org.xml.sax.SAXException;
 
 
 
-class CustomScriptSCMChangeLogSet extends ChangeLogSet<CustomScriptSCMChangeLogEntry> {
-   private final List<CustomScriptSCMChangeLogEntry> changeLogEntries;
+class CustomCommandSCMChangeLogSet extends ChangeLogSet<CustomCommandSCMChangeLogEntry> {
+   private final List<CustomCommandSCMChangeLogEntry> changeLogEntries;
     
-   public CustomScriptSCMChangeLogSet(AbstractBuild<?, ?> build, List<CustomScriptSCMChangeLogEntry> changeLogEntries) {
+   public CustomCommandSCMChangeLogSet(AbstractBuild<?, ?> build, List<CustomCommandSCMChangeLogEntry> changeLogEntries) {
        super(build);
        this.changeLogEntries = changeLogEntries;
-        for(CustomScriptSCMChangeLogEntry changeLogEntry: changeLogEntries) {
+        for(CustomCommandSCMChangeLogEntry changeLogEntry: changeLogEntries) {
                 changeLogEntry.setParent(this);
         }
    }
@@ -32,7 +32,7 @@ class CustomScriptSCMChangeLogSet extends ChangeLogSet<CustomScriptSCMChangeLogE
         return this.changeLogEntries.isEmpty();
     }
 
-    public Iterator<CustomScriptSCMChangeLogEntry> iterator() {
+    public Iterator<CustomCommandSCMChangeLogEntry> iterator() {
         return this.changeLogEntries.iterator();
     }
     
@@ -41,12 +41,12 @@ class CustomScriptSCMChangeLogSet extends ChangeLogSet<CustomScriptSCMChangeLogE
                 
         @Override
         public ChangeLogSet<? extends Entry> parse(AbstractBuild ab, File file) throws IOException, SAXException {
-            List<CustomScriptSCMChangeLogEntry> changeLogEntries = new ArrayList<CustomScriptSCMChangeLogEntry>();
+            List<CustomCommandSCMChangeLogEntry> changeLogEntries = new ArrayList<CustomCommandSCMChangeLogEntry>();
 
             Digester digester = new Digester2();
             digester.push(changeLogEntries);
 
-            digester.addObjectCreate("*/entry", CustomScriptSCMChangeLogEntry.class);
+            digester.addObjectCreate("*/entry", CustomCommandSCMChangeLogEntry.class);
             digester.addBeanPropertySetter("*/entry/date");
             digester.addBeanPropertySetter("*/entry/user-id", "userId");
             digester.addBeanPropertySetter("*/entry/changeset-number", "changesetNumber");
@@ -54,7 +54,7 @@ class CustomScriptSCMChangeLogSet extends ChangeLogSet<CustomScriptSCMChangeLogE
             digester.addBeanPropertySetter("*/entry/comment", "comment");
             digester.addSetNext("*/entry", "add");
 
-            digester.addObjectCreate("*/entry/items/item", CustomScriptSCMChangeLogEntry.Item.class);
+            digester.addObjectCreate("*/entry/items/item", CustomCommandSCMChangeLogEntry.Item.class);
             digester.addBeanPropertySetter("*/entry/items/item/change-type", "changeType");
             digester.addBeanPropertySetter("*/entry/items/item/file-name", "filename");
             digester.addSetNext("*/entry/items/item", "addFile");
@@ -71,7 +71,7 @@ class CustomScriptSCMChangeLogSet extends ChangeLogSet<CustomScriptSCMChangeLogE
                     throw new IOException2("Failed to parse " + file, e);
             }
 
-            return new CustomScriptSCMChangeLogSet(ab, changeLogEntries);
+            return new CustomCommandSCMChangeLogSet(ab, changeLogEntries);
         }
         
     }

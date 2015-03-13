@@ -1,2 +1,2 @@
-custom-script-scm
+custom-command-scm
 =================

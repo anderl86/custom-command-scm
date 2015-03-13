@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package org.jenkinsci.plugins.customscriptscm;
+package org.jenkinsci.plugins.customcommandscm;
 
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -27,7 +27,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -37,11 +36,11 @@ import org.kohsuke.stapler.StaplerRequest;
  *
  * @author andi
  */
-public class CustomScriptSCM extends SCM {
+public class CustomCommandSCM extends SCM {
     private String commandAdditions = "";
 
     @DataBoundConstructor
-    public CustomScriptSCM(String commandAdditions) {
+    public CustomCommandSCM(String commandAdditions) {
         this.commandAdditions = Util.fixEmptyAndTrim(commandAdditions);
     }
 
@@ -57,8 +56,8 @@ public class CustomScriptSCM extends SCM {
             cmd += " " + this.getCommandAdditions();
         
         String state = "";
-        if(scmrs instanceof CustomScriptSCMRevisionState) {
-            state = ((CustomScriptSCMRevisionState)scmrs).getState();
+        if(scmrs instanceof CustomCommandSCMRevisionState) {
+            state = ((CustomCommandSCMRevisionState)scmrs).getState();
         }
         
         ByteArrayInputStream in = new ByteArrayInputStream(state.getBytes());
@@ -73,7 +72,7 @@ public class CustomScriptSCM extends SCM {
                         .stderr(tl.getLogger())
                         .start().joinWithTimeout(DESCRIPTOR.getPollCommandTimeout(), TimeUnit.SECONDS, tl);
          
-        CustomScriptSCMRevisionState newstate = new CustomScriptSCMRevisionState(out.toString());
+        CustomCommandSCMRevisionState newstate = new CustomCommandSCMRevisionState(out.toString());
         if(retcode == 0)
             return new PollingResult(scmrs, newstate, PollingResult.Change.NONE);
         else if(retcode == 100)
@@ -114,7 +113,7 @@ public class CustomScriptSCM extends SCM {
 
     @Override
     public ChangeLogParser createChangeLogParser() {
-        return new CustomScriptSCMChangeLogSet.Parser();
+        return new CustomCommandSCMChangeLogSet.Parser();
     }
 
     public String getCommandAdditions() {
@@ -126,10 +125,10 @@ public class CustomScriptSCM extends SCM {
     }
     
     
-    public static class CustomScriptSCMRevisionState extends SCMRevisionState {
+    public static class CustomCommandSCMRevisionState extends SCMRevisionState {
         private String state;
 
-        public CustomScriptSCMRevisionState(String state) {
+        public CustomCommandSCMRevisionState(String state) {
             this.state = state;
         }        
         
@@ -142,14 +141,14 @@ public class CustomScriptSCM extends SCM {
         }
     }
     
-    public static class DescriptorImpl extends SCMDescriptor<CustomScriptSCM> {
-        private String scmName = Messages.CustomScriptSCM_DisplayName();
+    public static class DescriptorImpl extends SCMDescriptor<CustomCommandSCM> {
+        private String scmName = Messages.CustomCommandSCM_DisplayName();
         private String pollCommand;
         private int pollCommandTimeout = 60;
         private String checkoutCommand;
         
         DescriptorImpl() {
-            super(CustomScriptSCM.class, null);
+            super(CustomCommandSCM.class, null);
             load();
         }
         

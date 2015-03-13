@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.customscriptscm;
+package org.jenkinsci.plugins.customcommandscm;
 
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class CustomScriptSCMChangeLogEntry extends Entry {
+public class CustomCommandSCMChangeLogEntry extends Entry {
 	public static class Item implements AffectedFile {
 		private String filename;
 		private String changeType;
@@ -67,7 +67,7 @@ public class CustomScriptSCMChangeLogEntry extends Entry {
 	public String getChangesetUrl() {
 		return changesetUrl;
 	}
-
+        
 	public void setChangesetUrl(String changesetUrl) {
 		this.changesetUrl = changesetUrl;
 	}

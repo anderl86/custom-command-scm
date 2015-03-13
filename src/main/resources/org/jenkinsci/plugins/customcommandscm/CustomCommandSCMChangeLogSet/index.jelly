@@ -11,7 +11,12 @@
           <a name="detail${loop.index}"></a>
           <div class="changeset-message">
             <b>${loop.index + 1}. <a href="${rootURL}/${cs.author.url}/">${cs.author}</a> on ${cs.date}</b><br/>
-            ${cs.msgAnnotated}
+            <j:if test="${cs.changesetUrl.isEmpty()}">
+        	${cs.msgAnnotated}
+            </j:if>
+            <j:if test="${!cs.changesetUrl.isEmpty()}">
+                <a href="${cs.changesetUrl}"  target="blank">${cs.msgAnnotated}</a>
+            </j:if>
           </div>
         </td>
       </tr>

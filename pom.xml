@@ -7,11 +7,11 @@
   </parent>
 
   <groupId>org.jenkinsci.plugins</groupId>
-  <artifactId>custom-script-scm</artifactId>
-  <version>0.2.4-SNAPSHOT</version>
-  <name>Custom Script SCM</name>
+  <artifactId>custom-command-scm</artifactId>
+  <version>0.2.5-SNAPSHOT</version>
+  <name>Custom Command SCM</name>
   <packaging>hpi</packaging>
-  <description>Adds a scm integration that is based on calling external scripts.</description>
+  <description>Adds a scm integration that is based on calling external commands.</description>
   
   <developers>
     <developer>
