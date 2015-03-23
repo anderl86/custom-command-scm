@@ -15,7 +15,6 @@ import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
-import hudson.model.Computer;
 import hudson.model.TaskListener;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.PollingResult;
@@ -65,7 +64,7 @@ public class CustomCommandSCM extends SCM {
         
         int retcode =   lnchr.launch()
                         .cmdAsSingleString(cmd)
-                        .envs(ap.getEnvironment(Computer.currentComputer().getNode(), tl))
+                        .envs(ap.getEnvironment(null, tl))
                         .pwd(fp)
                         .stdin(in)
                         .stdout(out)
@@ -73,16 +72,14 @@ public class CustomCommandSCM extends SCM {
                         .start().joinWithTimeout(DESCRIPTOR.getPollCommandTimeout(), TimeUnit.SECONDS, tl);
          
         CustomCommandSCMRevisionState newstate = new CustomCommandSCMRevisionState(out.toString());
-        if(retcode == 0)
-            return new PollingResult(scmrs, newstate, PollingResult.Change.NONE);
-        else if(retcode == 100)
+        if(retcode == 100)
             return new PollingResult(scmrs, newstate, PollingResult.Change.INSIGNIFICANT);
-        else if(retcode == 101)
+        else if(retcode == 101 || retcode == 1000)
             return new PollingResult(scmrs, newstate, PollingResult.Change.SIGNIFICANT);
-        else if(retcode == 102)
+        else if(retcode == 102 || retcode == 1001)
             return new PollingResult(scmrs, newstate, PollingResult.Change.INCOMPARABLE);
         else
-            throw new AbortException("Poll changes command returned undefined retcode " + retcode);
+            return new PollingResult(scmrs, newstate, PollingResult.Change.NONE);
     }
 
     @Override
