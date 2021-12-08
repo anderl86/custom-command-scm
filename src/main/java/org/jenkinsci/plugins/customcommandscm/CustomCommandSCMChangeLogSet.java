@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.customcommandscm;
 import hudson.model.AbstractBuild;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.ChangeLogSet;
-import hudson.util.Digester2;
 import hudson.util.IOException2;
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.digester.Digester;
+import org.apache.commons.digester3.Digester;
 import org.xml.sax.SAXException;
 
 
@@ -43,7 +42,7 @@ class CustomCommandSCMChangeLogSet extends ChangeLogSet<CustomCommandSCMChangeLo
         public ChangeLogSet<? extends Entry> parse(AbstractBuild ab, File file) throws IOException, SAXException {
             List<CustomCommandSCMChangeLogEntry> changeLogEntries = new ArrayList<CustomCommandSCMChangeLogEntry>();
 
-            Digester digester = new Digester2();
+            Digester digester = new Digester();
             digester.push(changeLogEntries);
 
             digester.addObjectCreate("*/entry", CustomCommandSCMChangeLogEntry.class);

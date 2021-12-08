@@ -1,6 +1,7 @@
 <!--
   This view is used to render the installed plugins page.
 -->
+<?jelly escape-by-default='true'?>
 <div>
   Adds a scm integration that is based on calling external commands.<br/>
   Supports polling and checkout as well as change sets.
