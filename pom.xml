@@ -15,7 +15,7 @@
 
   <groupId>org.jenkinsci.plugins</groupId>
   <artifactId>custom-command-scm</artifactId>
-  <version>0.2.7</version>
+  <version>0.2.8-snapshot</version>
   <name>Custom Command SCM</name>
   <packaging>hpi</packaging>
   <description>Adds a scm integration that is based on calling external commands.</description>
