@@ -12,20 +12,14 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.PollingResult;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.concurrent.TimeUnit;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -43,13 +37,15 @@ public class CustomCommandSCM extends SCM {
         this.commandAdditions = Util.fixEmptyAndTrim(commandAdditions);
     }
 
+
+
     @Override
-    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> ab, Launcher lnchr, TaskListener tl) throws IOException, InterruptedException {
+    public SCMRevisionState calcRevisionsFromBuild(Run<?, ?> ab, FilePath workspace, Launcher lnchr, TaskListener tl) {
         return SCMRevisionState.NONE;
     }
 
     @Override
-    protected PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> ap, Launcher lnchr, FilePath fp, TaskListener tl, SCMRevisionState scmrs) throws IOException, InterruptedException {
+    public PollingResult compareRemoteRevisionWith(Job<?, ?> ab, Launcher lnchr, FilePath fp, TaskListener tl, SCMRevisionState scmrs) throws IOException, InterruptedException {
         String cmd = DESCRIPTOR.getPollCommand();
         if(this.getCommandAdditions() != null) 
             cmd += " " + this.getCommandAdditions();
@@ -64,7 +60,7 @@ public class CustomCommandSCM extends SCM {
         
         int retcode =   lnchr.launch()
                         .cmdAsSingleString(cmd)
-                        .envs(ap.getEnvironment(null, tl))
+                        .envs(ab.getEnvironment(null, tl))
                         .pwd(fp)
                         .stdin(in)
                         .stdout(out)
@@ -83,29 +79,33 @@ public class CustomCommandSCM extends SCM {
     }
 
     @Override
-    public boolean checkout(AbstractBuild<?, ?> ab, Launcher lnchr, FilePath fp, BuildListener bl, File file) throws IOException, InterruptedException {
+    public void checkout(Run<?, ?> ab, Launcher lnchr, FilePath fp, TaskListener bl, File file, SCMRevisionState baseline) throws IOException, InterruptedException {
         String cmd = DESCRIPTOR.getCheckoutCommand();
         if(this.getCommandAdditions() != null) 
             cmd += " " + this.getCommandAdditions();
-        
-         EnvVars envVars = ab.getEnvironment(bl);
-         envVars.putAll(ab.getBuildVariables());
-        
-        FileOutputStream changelogfile = new FileOutputStream(file);
-        
-        int retcode =   lnchr.launch()
-                        .cmdAsSingleString(cmd)
-                        .envs(envVars)
-                        .pwd(fp)
-                        .stdout(changelogfile)
-                        .stderr(lnchr.getListener().getLogger())
-                        .start().join();
-        
-        if(retcode != 0) {
-            throw new AbortException("Error checking out source code");
+
+        EnvVars envVars = ab.getEnvironment(bl);
+        OutputStream changelogfile = null;
+        try {
+            changelogfile = file != null ? new FileOutputStream(file) : new ByteArrayOutputStream();
+            fp.mkdirs();
+            int retcode =   lnchr.launch()
+                    .cmdAsSingleString(cmd)
+                    .envs(envVars)
+                    .pwd(fp)
+                    .stdout(changelogfile)
+                    .stderr(lnchr.getListener().getLogger())
+                    .start().join();
+
+            if(retcode != 0) {
+                throw new AbortException("Error checking out source code");
+            }
         }
-        
-        return true;
+        finally {
+            if(changelogfile != null) {
+                changelogfile.close();
+            }
+        }
     }
 
     @Override
@@ -137,14 +137,14 @@ public class CustomCommandSCM extends SCM {
             this.state = state;
         }
     }
-    
+
     public static class DescriptorImpl extends SCMDescriptor<CustomCommandSCM> {
         private String scmName = Messages.CustomCommandSCM_DisplayName();
         private String pollCommand;
         private int pollCommandTimeout = 60;
         private String checkoutCommand;
         
-        DescriptorImpl() {
+        public DescriptorImpl() {
             super(CustomCommandSCM.class, null);
             load();
         }

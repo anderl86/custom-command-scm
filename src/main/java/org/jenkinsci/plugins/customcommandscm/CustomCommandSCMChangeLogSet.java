@@ -1,8 +1,10 @@
 package org.jenkinsci.plugins.customcommandscm;
 
 import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.ChangeLogSet;
+import hudson.scm.RepositoryBrowser;
 import hudson.util.IOException2;
 import java.io.File;
 import java.io.IOException;
@@ -18,8 +20,8 @@ import org.xml.sax.SAXException;
 class CustomCommandSCMChangeLogSet extends ChangeLogSet<CustomCommandSCMChangeLogEntry> {
    private final List<CustomCommandSCMChangeLogEntry> changeLogEntries;
     
-   public CustomCommandSCMChangeLogSet(AbstractBuild<?, ?> build, List<CustomCommandSCMChangeLogEntry> changeLogEntries) {
-       super(build);
+   public CustomCommandSCMChangeLogSet(Run<?, ?> run, RepositoryBrowser<?> browser, List<CustomCommandSCMChangeLogEntry> changeLogEntries) {
+       super(run, browser);
        this.changeLogEntries = changeLogEntries;
         for(CustomCommandSCMChangeLogEntry changeLogEntry: changeLogEntries) {
                 changeLogEntry.setParent(this);
@@ -39,7 +41,7 @@ class CustomCommandSCMChangeLogSet extends ChangeLogSet<CustomCommandSCMChangeLo
         private static final Logger LOG = Logger.getLogger(Parser.class.getName());
                 
         @Override
-        public ChangeLogSet<? extends Entry> parse(AbstractBuild ab, File file) throws IOException, SAXException {
+        public ChangeLogSet<? extends Entry> parse(Run build, RepositoryBrowser<?> browser, File changelogFile) throws IOException, SAXException {
             List<CustomCommandSCMChangeLogEntry> changeLogEntries = new ArrayList<CustomCommandSCMChangeLogEntry>();
 
             Digester digester = new Digester();
@@ -59,18 +61,18 @@ class CustomCommandSCMChangeLogSet extends ChangeLogSet<CustomCommandSCMChangeLo
             digester.addSetNext("*/entry/items/item", "addFile");
 
             try {
-                if(file.exists() && file.length() > 0) {
-                    digester.parse(file);
+                if(changelogFile.exists() && changelogFile.length() > 0) {
+                    digester.parse(changelogFile);
                 }
             }
             catch(IOException e) {
-                    throw new IOException2("Failed to parse " + file, e);
+                    throw new IOException2("Failed to parse " + changelogFile, e);
             }
             catch(SAXException e) {
-                    throw new IOException2("Failed to parse " + file, e);
+                    throw new IOException2("Failed to parse " + changelogFile, e);
             }
 
-            return new CustomCommandSCMChangeLogSet(ab, changeLogEntries);
+            return new CustomCommandSCMChangeLogSet(build, browser, changeLogEntries);
         }
         
     }
